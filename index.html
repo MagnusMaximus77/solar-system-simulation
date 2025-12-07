@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultra Detailed Space Simulation</title>
+    <style>
+        /* ==========================================
+           PREMIUM CINEMATIC UI - SPACECRAFT THEME
+           ========================================== */
+
+        /* CSS Variables */
+        :root {
+            --primary-glow: #4facfe;
+            --secondary-glow: #667eea;
+            --accent-gold: #ffc864;
+            --bg-dark: rgba(5, 10, 25, 0.92);
+            --bg-glass: rgba(10, 20, 40, 0.75);
+            --border-glow: rgba(79, 172, 254, 0.35);
+            --text-primary: #e8f4ff;
+            --text-secondary: #8899aa;
+            --font-display: 'Orbitron', 'Rajdhani', sans-serif;
+            --font-body: 'Rajdhani', 'Segoe UI', sans-serif;
+        }
+
+        /* GENERAL SETTINGS */
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000;
+            font-family: var(--font-body);
+            user-select: none;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        /* ==========================================
+           CONTROL PANEL (TOP LEFT)
+           ========================================== */
+        #ui-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
+            width: 200px;
+            background: var(--bg-dark);
+            padding: 14px;
+            border-radius: 16px;
+            border: 1px solid var(--border-glow);
+            backdrop-filter: blur(20px);
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.6),
+                0 0 40px rgba(79, 172, 254, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            animation: panelFadeIn 0.8s ease-out;
+        }
+
+        @keyframes panelFadeIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Panel Header */
+        #ui-container::before {
+            content: '◆ CONTROL CENTER';
+            display: block;
+            font-family: var(--font-display);
+            font-size: 10px;
+            letter-spacing: 3px;
+            color: var(--primary-glow);
+            text-align: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(79, 172, 254, 0.2);
+        }
+
+        /* PREMIUM BUTONLAR */
+        button {
+            width: 100%;
+            padding: 12px 16px;
+            font-family: var(--font-display);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            background: linear-gradient(135deg, rgba(79, 172, 254, 0.15) 0%, rgba(102, 126, 234, 0.1) 100%);
+            color: var(--text-primary);
+            border: 1px solid rgba(79, 172, 254, 0.25);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        button:hover::before {
+            left: 100%;
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, rgba(79, 172, 254, 0.3) 0%, rgba(102, 126, 234, 0.2) 100%);
+            border-color: var(--primary-glow);
+            box-shadow:
+                0 0 20px rgba(79, 172, 254, 0.25),
+                0 4px 15px rgba(0, 0, 0, 0.3);
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        /* Özel Buton Durumları */
+        #pauseBtn.active {
+            background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
+            color: #000;
+            border-color: #ffd700;
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.4);
+        }
+
+        #scaleBtn.active {
+            background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
+            color: #fff;
+            border-color: #ff4444;
+            box-shadow: 0 0 25px rgba(255, 68, 68, 0.5);
+            animation: scaleGlow 2s infinite;
+        }
+
+        @keyframes scaleGlow {
+
+            0%,
+            100% {
+                box-shadow: 0 0 20px rgba(255, 68, 68, 0.4);
+            }
+
+            50% {
+                box-shadow: 0 0 35px rgba(255, 68, 68, 0.7);
+            }
+        }
+
+        /* SLIDER - Premium */
+        .slider-container {
+            color: var(--text-secondary);
+            font-family: var(--font-display);
+            font-size: 10px;
+            letter-spacing: 1px;
+            margin-top: 12px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            border: 1px solid rgba(79, 172, 254, 0.1);
+        }
+
+        .slider-container label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #speedValue {
+            color: var(--primary-glow);
+            font-weight: 700;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 4px;
+            margin-top: 10px;
+            background: linear-gradient(90deg, var(--primary-glow), var(--secondary-glow));
+            border-radius: 2px;
+            outline: none;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: linear-gradient(135deg, #fff 0%, #4facfe 100%);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(79, 172, 254, 0.5);
+            transition: transform 0.2s;
+        }
+
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        /* ==========================================
+           PREMIUM HELP PANEL
+           ========================================== */
+        .help-panel {
+            margin-top: 16px;
+            padding: 16px;
+            background: linear-gradient(135deg, rgba(79, 172, 254, 0.08) 0%, rgba(102, 126, 234, 0.05) 100%);
+            border-radius: 12px;
+            border: 1px solid rgba(79, 172, 254, 0.2);
+        }
+
+        .help-panel-title {
+            font-family: var(--font-display);
+            font-size: 10px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--primary-glow);
+            text-align: center;
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(79, 172, 254, 0.15);
+        }
+
+        .help-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 6px;
+            margin-bottom: 4px;
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            cursor: default;
+        }
+
+        .help-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .help-item:hover {
+            background: rgba(79, 172, 254, 0.12);
+            transform: translateX(4px);
+        }
+
+        .help-icon {
+            display: none;
+        }
+
+        .help-content {
+            flex: 1;
+        }
+
+        .help-action {
+            font-family: var(--font-display);
+            font-size: 10px;
+            letter-spacing: 1px;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .help-desc {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        /* ==========================================
+           BİLGİ KARTI (SAĞ PANEL) - PREMIUM
+           ========================================== */
+        #info-panel {
+            position: absolute;
+            top: 20px;
+            right: -420px;
+            width: 360px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            padding: 0;
+            border-radius: 20px;
+            border: 1px solid var(--border-glow);
+            backdrop-filter: blur(25px);
+            box-shadow:
+                -15px 0 50px rgba(0, 0, 0, 0.7),
+                0 0 50px rgba(79, 172, 254, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            transition: right 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            z-index: 10;
+        }
+
+        #info-panel::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        #info-panel::-webkit-scrollbar-thumb {
+            background: var(--border-glow);
+            border-radius: 2px;
+        }
+
+        #info-panel.active {
+            right: 20px;
+        }
+
+        /* Kart Başlık Alanı */
+        .info-header {
+            padding: 24px 24px 20px;
+            background: linear-gradient(180deg, rgba(79, 172, 254, 0.15) 0%, transparent 100%);
+            border-bottom: 1px solid rgba(79, 172, 254, 0.2);
+            position: relative;
+        }
+
+        #planet-name {
+            margin: 0;
+            font-family: var(--font-display);
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--primary-glow);
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            text-align: center;
+            text-shadow: 0 0 20px rgba(79, 172, 254, 0.5);
+        }
+
+        /* Kapatma Butonu */
+        #close-btn {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            margin: 0;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            color: var(--text-secondary);
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        #close-btn:hover {
+            background: rgba(255, 68, 68, 0.2);
+            border-color: rgba(255, 68, 68, 0.5);
+            color: #ff6666;
+            transform: rotate(90deg);
+        }
+
+        /* Kart İçerik */
+        #planet-details {
+            padding: 20px 24px 24px;
+        }
+
+        /* Premium Tablo */
+        .info-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 4px;
+            font-size: 12px;
+        }
+
+        .info-table tr {
+            background: rgba(255, 255, 255, 0.02);
+            transition: background 0.3s;
+        }
+
+        .info-table tr:hover {
+            background: rgba(79, 172, 254, 0.08);
+        }
+
+        .info-table td {
+            padding: 10px 12px;
+        }
+
+        .info-table td:first-child {
+            border-radius: 6px 0 0 6px;
+        }
+
+        .info-table td:last-child {
+            border-radius: 0 6px 6px 0;
+        }
+
+        .info-table .label {
+            font-family: var(--font-display);
+            font-size: 10px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            width: 45%;
+        }
+
+        .info-table .value {
+            font-family: var(--font-body);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            text-align: right;
+        }
+
+        /* Karşılaştırma Butonu */
+        #compareBtn {
+            width: 100%;
+            margin-top: 16px;
+            padding: 14px;
+            background: linear-gradient(135deg, #00c6fb 0%, #005bea 100%);
+            border: none;
+            border-radius: 10px;
+            font-family: var(--font-display);
+            font-size: 11px;
+            letter-spacing: 2px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 91, 234, 0.3);
+        }
+
+        #compareBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 91, 234, 0.5);
+        }
+
+        /* Açıklama Alanı */
+        .info-description {
+            margin-top: 20px;
+            padding: 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            border-left: 3px solid var(--primary-glow);
+        }
+
+        .info-description p {
+            margin: 0;
+            font-size: 13px;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        /* Fun Fact Alanı */
+        .info-funfact {
+            margin-top: 16px;
+            padding: 14px 16px;
+            background: linear-gradient(135deg, rgba(255, 200, 100, 0.1) 0%, rgba(255, 150, 50, 0.05) 100%);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 200, 100, 0.2);
+            font-size: 12px;
+            line-height: 1.6;
+            color: var(--accent-gold);
+        }
+
+        .info-funfact em {
+            font-style: normal;
+        }
+
+        /* ==========================================
+           HUD PANELLERİ - UZAY GEMİSİ KOKPİTİ
+           ========================================== */
+        .hud-panel {
+            position: absolute;
+            background: var(--bg-glass);
+            border: 1px solid var(--border-glow);
+            border-radius: 10px;
+            padding: 14px 18px;
+            font-family: var(--font-display);
+            font-size: 11px;
+            color: var(--primary-glow);
+            backdrop-filter: blur(15px);
+            box-shadow:
+                0 0 20px rgba(79, 172, 254, 0.12),
+                inset 0 0 30px rgba(0, 20, 50, 0.4);
+            z-index: 10;
+            pointer-events: none;
+            animation: hudFadeIn 1s ease-out;
+        }
+
+        @keyframes hudFadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .hud-panel::before {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: 20px;
+            right: 20px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--primary-glow), transparent);
+        }
+
+        .hud-bottom-left {
+            bottom: 20px;
+            left: 20px;
+        }
+
+        .hud-bottom-right {
+            bottom: 20px;
+            right: 20px;
+            text-align: right;
+        }
+
+        .hud-top-center {
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 13px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            padding: 12px 24px;
+        }
+
+        .hud-label {
+            font-size: 8px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: rgba(79, 172, 254, 0.6);
+            margin-bottom: 8px;
+        }
+
+        #hud-target {
+            border-color: rgba(255, 200, 100, 0.35);
+            color: var(--accent-gold);
+            background: rgba(255, 200, 100, 0.05);
+        }
+
+        #hud-target::before {
+            background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
+        }
+
+        /* HUD Değerleri */
+        #hud-x,
+        #hud-y,
+        #hud-z,
+        #hud-elapsed,
+        #hud-scale-info {
+            font-size: 12px;
+            margin-top: 2px;
+        }
+    </style>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap"
+        rel="stylesheet">
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
+                "gsap": "https://unpkg.com/gsap@3.12.5/index.js"
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <div id="ui-container">
+        <button id="pauseBtn">Pause ⏸️</button>
+        <div class="slider-container">
+            <label>SPEED MULTIPLIER <span id="speedValue">1x</span></label>
+            <input type="range" id="speedSlider" min="0" max="3" step="0.1" value="1">
+        </div>
+
+        <!-- Premium Help Panel -->
+        <div class="help-panel">
+            <div class="help-panel-title">🎮 Controls</div>
+
+            <div class="help-item" id="help-left-click">
+                <div class="help-content">
+                    <div class="help-action">LEFT CLICK</div>
+                    <div class="help-desc">View planet information</div>
+                </div>
+            </div>
+
+            <div class="help-item" id="help-middle-click">
+                <div class="help-content">
+                    <div class="help-action">MIDDLE CLICK</div>
+                    <div class="help-desc">Focus on planet</div>
+                </div>
+            </div>
+
+            <div class="help-item" id="help-right-click">
+                <div class="help-content">
+                    <div class="help-action">RIGHT CLICK + DRAG</div>
+                    <div class="help-desc">Pan camera</div>
+                </div>
+            </div>
+
+            <div class="help-item" id="help-scroll">
+                <div class="help-content">
+                    <div class="help-action">SCROLL WHEEL</div>
+                    <div class="help-desc">Zoom in/out</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HUD: Bottom Left - Camera Coordinates -->
+    <div id="hud-coords" class="hud-panel hud-bottom-left">
+        <div class="hud-label">📍 CAMERA POSITION</div>
+        <div id="hud-x">X: 0.00</div>
+        <div id="hud-y">Y: 0.00</div>
+        <div id="hud-z">Z: 0.00</div>
+    </div>
+
+    <!-- HUD: Bottom Right - Simulation Info -->
+    <div id="hud-time" class="hud-panel hud-bottom-right">
+        <div class="hud-label">⚙️ SIMULATION STATUS</div>
+        <div id="hud-elapsed">⏱ 00:00:00</div>
+        <div id="hud-scale-info">⚡ 1x</div>
+    </div>
+
+    <!-- HUD: Top Center - Target Indicator -->
+    <div id="hud-target" class="hud-panel hud-top-center">
+        <span id="target-name">◈ FREE FLIGHT ◈</span>
+    </div>
+
+    <div id="info-panel">
+        <div class="info-header">
+            <button id="close-btn">×</button>
+            <h2 id="planet-name">Planet</h2>
+        </div>
+        <div id="planet-details"></div>
+    </div>
+
+    <script type="module" src="./src/main.js"></script>
+</body>
+
+</html>
